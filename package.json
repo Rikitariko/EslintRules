@@ -1,0 +1,20 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "babel-eslint": "7.2.3",
+    "babel-loader": "7.1.2",
+    "eslint": "4.19.1",
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-angular": "^4.0.1",
+    "eslint-plugin-local-rules": "^0.1.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

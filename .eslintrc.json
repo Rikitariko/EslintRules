@@ -1,0 +1,23 @@
+{
+  "parser": "babel-eslint",
+  "plugins": [
+    "eslint-plugin-local-rules",
+    "angular"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "rules": {
+    "semi": "error",
+    "local-rules/angular-unused": "error",
+    "angular/deferred": 0,
+    "angular/definedundefined": 0,
+    "angular/di": [0, "array"],
+    "angular/di-order": [0, true],
+    "angular/di-unused": 2
+    }
+}
