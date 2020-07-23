@@ -3,17 +3,22 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "dependencies": {},
+  "dependencies": {
+    "ast-types": "^0.13.3",
+    "recast": "^0.19.1"
+  },
   "devDependencies": {
     "babel-eslint": "7.2.3",
     "babel-loader": "7.1.2",
+    "babel-preset-es2015": "^6.24.1",
     "eslint": "4.19.1",
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-angular": "^4.0.1",
     "eslint-plugin-local-rules": "^0.1.1"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "node collect_modules.js"
   },
   "author": "",
   "license": "ISC"
