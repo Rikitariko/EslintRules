@@ -27,6 +27,14 @@ function findComment(node) {
 
 function findReqIdentifier(node) {
     let result = [];
+
+    if (node.type === "ArrayExpression" && node.elements.length > 0 && node.elements[0].type === "Literal") {
+        node.elements.forEach(function(item) {
+            result.push(item.value);
+        });
+        return result
+    }
+
     recast.visit(node, {
         visitIdentifier: function (path) {
             this.traverse(path);
@@ -59,7 +67,8 @@ let angularChainableNames = [
 
 files.forEach(function(file) {
     let ast = recast.parse(fs.readFileSync(file).toString());
-    //console.log(fs.readFileSync(file).toString())
+    //console.log("/////" + file);
+    //console.log(fs.readFileSync(file).toString());
 
     let angularModuleIdentifiers = []
     let angularModuleCalls = [];
@@ -194,6 +203,5 @@ files.forEach(function(file) {
         }
     }
 });
-
 let json = JSON.stringify(result, null, ' ');
 console.log(json);

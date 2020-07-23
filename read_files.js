@@ -1,6 +1,6 @@
 const fs = require('fs');
-//const path = require('path');
-const ignore = ["node_modules", ".eslintrc.json", "collect_modules.js", ".idea", ".git", "package.json", "package-lock.json"];
+const path = require('path');
+const ignore = ["node_modules", "README.md", ".eslintrc.json", "collect_modules.js", ".idea", ".git", "package.json", "package-lock.json"];
 
 let getFiles = function (dir, files_){
     files_ = files_ || [];
