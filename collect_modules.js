@@ -32,7 +32,7 @@ function findReqIdentifier(node) {
         node.elements.forEach(function(item) {
             result.push(item.value);
         });
-        return result
+        return result;
     }
 
     recast.visit(node, {
@@ -45,11 +45,47 @@ function findReqIdentifier(node) {
     })
     return result;
 }
-const files = require('./read_files.js').getFiles(__dirname);
 
-let result = [];
-let point = result;
-let pointBody;
+function findFunctionByNode(path, callExpressionNode) {
+    let node = (callExpressionNode.callee.type === 'Identifier' || (callExpressionNode.callee.property.name === 'run' || callExpressionNode.callee.property.name === 'config')) ? callExpressionNode.arguments[0] : callExpressionNode.arguments[1];
+    if (callExpressionNode.arguments.length === 1 && callExpressionNode.arguments[0].type !== "Literal")
+        node = callExpressionNode.arguments[0];
+
+    if (!node) {
+        return;
+    }
+    let func;
+    switch (node.type) {
+        case 'ArrayExpression':
+            node = node.elements[node.elements.length - 1] || {};
+            break
+        case 'FunctionExpression':
+        case 'ArrowFunctionExpression':
+        case 'FunctionDeclaration':
+            return node;
+        case 'ObjectExpression':
+            node.properties.forEach(function (property) {
+                if (property.key.name === 'controller') {
+                    if (property.value.type === 'FunctionExpression' || property.value.type === "ArrowFunctionExpression")
+                        func = property.value;
+                    if (property.value.type === "ArrayExpression")
+                        func = property.value.elements[property.value.elements.length - 1];
+                }
+            });
+            return func;
+        case 'Identifier':
+            let scope = path.scope.lookup(node.name).getBindings();
+            scope[node.name].some(function (variable) {
+                if (variable.parentPath.value.type === 'FunctionDeclaration') {
+                    func = variable.parentPath.value;
+                    return true;
+                }
+                return false;
+            });
+            return func;
+    }
+}
+
 let angularChainableNames = [
     'animation',
     'component',
@@ -65,12 +101,25 @@ let angularChainableNames = [
     'value'
 ];
 
-files.forEach(function(file) {
-    let ast = recast.parse(fs.readFileSync(file).toString());
-    //console.log("/////" + file);
-    //console.log(fs.readFileSync(file).toString());
+function getObjectFromJSFiles(form, code) {
+    if (form !== "all")
+        return getObjectByCode(code, "");
 
-    let angularModuleIdentifiers = []
+    let result = [];
+    let files = require('./read_files.js').getFiles("js", __dirname);
+    files.forEach(function(file) {
+        result = result.concat(getObjectByCode(fs.readFileSync(file).toString(), file))
+    });
+    return result;
+}
+
+function getObjectByCode(code, pathFile) {
+    let result = [];
+    let pointBody;
+
+
+    let ast = recast.parse(code);
+    let angularModuleIdentifiers = [];
     let angularModuleCalls = [];
     let angularChainables = [];
 
@@ -90,15 +139,15 @@ files.forEach(function(file) {
                     if (path.node.arguments.length > 1)
                         arrayReq = findReqIdentifier(path.node.arguments[1]);
 
-                    point.push({
-                        path: file,
+                    result.push({
+                        path: pathFile,
                         object: callee.property.name,
                         name: path.node.arguments[0].value,
                         dependencies: arrayReq,
                         body: [],
                     })
 
-                    pointBody = point[point.length - 1].body;
+                    pointBody = result[result.length - 1].body;
                     angularModuleCalls.push(path.node);
                 } else if (angularChainableNames.indexOf(callee.property.name !== -1) && (angularModuleCalls.indexOf(callee.object) !== -1 || angularChainables.indexOf(callee.object) !== -1)) {
 
@@ -110,9 +159,11 @@ files.forEach(function(file) {
 
                     let fn = findFunctionByNode(path, path.node);
                     pointBody[pointBody.length - 1].variables = [];
-                    fn.params.forEach(function (param) {
-                        pointBody[pointBody.length - 1].variables.push(param.name);
-                    });
+
+                    if (fn !== undefined)
+                        fn.params.forEach(function (param) {
+                            pointBody[pointBody.length - 1].variables.push(param.name);
+                        });
 
                     let commentArray = findComment(fn);
                     commentArray.forEach(function (comment) {
@@ -122,10 +173,7 @@ files.forEach(function(file) {
                     });
 
 
-                } else if (callee.object.type === 'Identifier') {
-                    if (path.scope.lookup(callee.object.name) === null) {
-                        console.log(callee.property.name);
-                    }
+                } else if (callee.object.type === 'Identifier' && path.scope.lookup(callee.object.name) !== null) {
                     let scope = path.scope.lookup(callee.object.name).getBindings();
                     let isAngularModule = (scope[callee.object.name].length !== 0);
 
@@ -141,9 +189,11 @@ files.forEach(function(file) {
                         });
                         let fn = findFunctionByNode(path, path.node);
                         pointBody[pointBody.length - 1].variables = [];
-                        fn.params.forEach(function (param) {
-                            pointBody[pointBody.length - 1].variables.push(param.name);
-                        });
+
+                        if (fn !== undefined)
+                            fn.params.forEach(function (param) {
+                                pointBody[pointBody.length - 1].variables.push(param.name);
+                            });
 
                         let commentArray = findComment(fn);
                         commentArray.forEach(function (comment) {
@@ -163,45 +213,10 @@ files.forEach(function(file) {
             }
         },
     });
+    return result;
+}
 
-
-    function findFunctionByNode(path, callExpressionNode) {
-        let node = (callExpressionNode.callee.type === 'Identifier' || (callExpressionNode.callee.property.name === 'run' || callExpressionNode.callee.property.name === 'config')) ? callExpressionNode.arguments[0] : callExpressionNode.arguments[1];
-
-        if (!node) {
-            return;
-        }
-        let func;
-        switch(node.type) {
-            case 'ArrayExpression':
-                node = node.elements[node.elements.length - 1] || {};
-                break
-            case 'FunctionExpression':
-            case 'ArrowFunctionExpression':
-            case 'FunctionDeclaration':
-                return node;
-            case 'ObjectExpression':
-                node.properties.forEach(function (property) {
-                    if (property.key.name === 'controller') {
-                        if (property.value.type === 'FunctionExpression' || property.value.type === "ArrowFunctionExpression")
-                            func = property.value;
-                        if (property.value.type === "ArrayExpression")
-                            func = property.value.elements[property.value.elements.length - 1];
-                    }
-                });
-                return func;
-            case 'Identifier':
-                let scope = path.scope.lookup(node.name).getBindings();
-                scope[node.name].some(function (variable) {
-                    if (variable.parentPath.value.type === 'FunctionDeclaration') {
-                        func = variable.parentPath.value;
-                        return true;
-                    }
-                    return false;
-                });
-                return func;
-        }
-    }
-});
-let json = JSON.stringify(result, null, ' ');
-console.log(json);
+module.exports.getObjectFromJSFiles = getObjectFromJSFiles;
+//let json = JSON.stringify(getObjectFromJSFiles("", ""), null, ' ');
+//let json = JSON.stringify(getObjectFromJSFiles("all", ''), null, ' ');
+//console.log(json);

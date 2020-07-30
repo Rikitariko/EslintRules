@@ -5,6 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "ast-types": "^0.13.3",
+    "html-parse-stringify": "^2.0.0",
     "recast": "^0.19.1"
   },
   "devDependencies": {
@@ -14,11 +15,12 @@
     "eslint": "4.19.1",
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-angular": "^4.0.1",
-    "eslint-plugin-local-rules": "^0.1.1"
+    "eslint-plugin-local-rules": "^0.1.1",
+    "mocha": "^8.0.1"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "node collect_modules.js"
+    "test": "node_modules/.bin/mocha",
+    "lint": "node findFilter.js",
   },
   "author": "",
   "license": "ISC"
