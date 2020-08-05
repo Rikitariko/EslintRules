@@ -20,7 +20,7 @@
   },
   "scripts": {
     "test": "node_modules/.bin/mocha",
-    "lint": "node findFilter.js",
+    "lint": "node findDep.js"
   },
   "author": "",
   "license": "ISC"

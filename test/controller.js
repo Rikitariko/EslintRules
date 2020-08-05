@@ -9,7 +9,7 @@ describe('Different types of controller definition', function () {
             "object": "module",
             "name": "a",
             "dependencies": [],
-            "body": [{"object": "component", "name": "serviceId", "variables": ["a", "v", "b"]}]}];
+            "body": [{"object": "component", "name": "serviceId", "variables": ["a", "v", "b"], "controllers":[]}]}];
         assert.equal(JSON.stringify(modules.getObjectFromJSFiles("one", code)), JSON.stringify(answer));
     });
 
@@ -20,7 +20,7 @@ describe('Different types of controller definition', function () {
             "object": "module",
             "name": "a",
             "dependencies": [],
-            "body": [{"object": "component", "name": "serviceId", "variables": ["a", "v", "b"]}]}];
+            "body": [{"object": "component", "name": "serviceId", "variables": ["a", "v", "b"], "controllers":[]}]}];
         assert.equal(JSON.stringify(modules.getObjectFromJSFiles("one", code)), JSON.stringify(answer));
     });
 
@@ -31,7 +31,7 @@ describe('Different types of controller definition', function () {
             "object": "module",
             "name": "a",
             "dependencies": [],
-            "body": [{"object": "component", "name": "serviceId", "variables": ["a", "v", "b"]}]}];
+            "body": [{"object": "component", "name": "serviceId", "variables": ["a", "v", "b"], "controllers":[]}]}];
         assert.equal(JSON.stringify(modules.getObjectFromJSFiles("one", code)), JSON.stringify(answer));
     });
 });
@@ -44,7 +44,7 @@ describe('Different types of function', function () {
             "object": "module",
             "name": "a",
             "dependencies": [],
-            "body": [{"object": "factory", "name": "serviceId", "variables": ["a", "v", "b"]}]
+            "body": [{"object": "factory", "name": "serviceId", "variables": ["a", "v", "b"], "controllers":[]}]
         }];
         assert.equal(JSON.stringify(modules.getObjectFromJSFiles("one", code)), JSON.stringify(answer));
     });
@@ -56,7 +56,7 @@ describe('Different types of function', function () {
             "object": "module",
             "name": "a",
             "dependencies": [],
-            "body": [{"object": "factory", "name": "serviceId", "variables": ["a", "v", "b"]}]
+            "body": [{"object": "factory", "name": "serviceId", "variables": ["a", "v", "b"], "controllers":[]}]
         }];
         assert.equal(JSON.stringify(modules.getObjectFromJSFiles("one", code)), JSON.stringify(answer));
     });
@@ -68,7 +68,7 @@ describe('Different types of function', function () {
             "object": "module",
             "name": "a",
             "dependencies": [],
-            "body": [{"object": "factory", "name": "serviceId", "variables": ["a", "v", "b"]}]
+            "body": [{"object": "factory", "name": "serviceId", "variables": ["a", "v", "b"], "controllers":[]}]
         }];
         assert.equal(JSON.stringify(modules.getObjectFromJSFiles("one", code)), JSON.stringify(answer));
     });

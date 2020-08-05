@@ -9,7 +9,7 @@ describe('Detection of modules', function () {
             "object": "module",
             "name": "a",
             "dependencies": [],
-            "body": [{"object": "controller", "name": "GreetingController", "variables": []}]
+            "body": [{"object": "controller", "name": "GreetingController", "variables": [], "controllers":[]}],
         }];
         assert.equal(JSON.stringify(modules.getObjectFromJSFiles("one", code)), JSON.stringify(answer));
     });
@@ -22,7 +22,7 @@ describe('Detection of modules', function () {
             "object": "module",
             "name": "b",
             "dependencies": [],
-            "body": [{"object": "factory", "name": "serviceId", "variables": []}]
+            "body": [{"object": "factory", "name": "serviceId", "variables": [], "controllers":[]}],
         }];
         assert.equal(JSON.stringify(modules.getObjectFromJSFiles("one", code)), JSON.stringify(answer));
     });
@@ -36,7 +36,7 @@ describe('Detection of modules', function () {
             "object": "module",
             "name": "c",
             "dependencies": [],
-            "body": [{"object": "filter", "name": "reverse", "variables": []}]
+            "body": [{"object": "filter", "name": "reverse", "variables": [], "controllers":[]}]
         }];
         assert.equal(JSON.stringify(modules.getObjectFromJSFiles("one", code)), JSON.stringify(answer));
     });
@@ -50,7 +50,7 @@ describe('Detection of modules', function () {
             "object": "module",
             "name": "d",
             "dependencies": [],
-            "body": [{"object": "directive", "name": "myCustomer", "variables": []}]
+            "body": [{"object": "directive", "name": "myCustomer", "variables": [], "controllers":[]}]
         }];
         assert.equal(JSON.stringify(modules.getObjectFromJSFiles("one", code)), JSON.stringify(answer));
     });
@@ -63,7 +63,7 @@ describe('Detection of modules', function () {
             "object": "module",
             "name": "e",
             "dependencies": [],
-            "body": [{"object": "component", "name": "heroDetail", "variables": []}]
+            "body": [{"object": "component", "name": "heroDetail", "variables": [], "controllers":[]}]
         }];
             assert.equal(JSON.stringify(modules.getObjectFromJSFiles("one", code)), JSON.stringify(answer));
     });

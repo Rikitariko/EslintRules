@@ -25,15 +25,30 @@ function findComment(node) {
     return result;
 }
 
+function findController(node) {
+    if (!node)
+        return [];
+
+    let result = [];
+    recast.visit(node, {
+        visitProperty: function (path) {
+            this.traverse(path);
+            if (path.node.key.type === "Identifier" && path.node.key.name === "controller" && path.node.value.type === "Literal") {
+                result.push(path.node.value.value);
+            }
+        }
+    });
+
+    return result;
+}
+
 function findReqIdentifier(node) {
     let result = [];
 
-    if (node.type === "ArrayExpression" && node.elements.length > 0 && node.elements[0].type === "Literal") {
-        node.elements.forEach(function(item) {
+    node.elements.forEach(function(item) {
+        if (item.type === "Literal")
             result.push(item.value);
-        });
-        return result;
-    }
+    });
 
     recast.visit(node, {
         visitIdentifier: function (path) {
@@ -101,12 +116,25 @@ let angularChainableNames = [
     'value'
 ];
 
+function getObjectFromFilesByPath(path) {
+    let result = [];
+    let files = require('./read_files.js').getFiles("js", path);
+    files.forEach(function(file) {
+        result = result.concat(getObjectByCode(fs.readFileSync(file).toString(), file))
+    });
+    return result;
+}
+
+function getObjectFromFileByPath(path) {
+    return getObjectByCode(fs.readFileSync(path).toString(), "");
+}
+
 function getObjectFromJSFiles(form, code) {
     if (form !== "all")
         return getObjectByCode(code, "");
 
     let result = [];
-    let files = require('./read_files.js').getFiles("js", __dirname);
+    let files = require('./read_files.js').getFiles("js", __dirname + '/test_project');
     files.forEach(function(file) {
         result = result.concat(getObjectByCode(fs.readFileSync(file).toString(), file))
     });
@@ -150,7 +178,6 @@ function getObjectByCode(code, pathFile) {
                     pointBody = result[result.length - 1].body;
                     angularModuleCalls.push(path.node);
                 } else if (angularChainableNames.indexOf(callee.property.name !== -1) && (angularModuleCalls.indexOf(callee.object) !== -1 || angularChainables.indexOf(callee.object) !== -1)) {
-
                     angularChainables.push(path.node);
                     pointBody.push({
                         object: callee.property.name,
@@ -159,6 +186,7 @@ function getObjectByCode(code, pathFile) {
 
                     let fn = findFunctionByNode(path, path.node);
                     pointBody[pointBody.length - 1].variables = [];
+                    pointBody[pointBody.length - 1].controllers = findController(fn);
 
                     if (fn !== undefined)
                         fn.params.forEach(function (param) {
@@ -189,6 +217,7 @@ function getObjectByCode(code, pathFile) {
                         });
                         let fn = findFunctionByNode(path, path.node);
                         pointBody[pointBody.length - 1].variables = [];
+                        pointBody[pointBody.length - 1].controllers = findController(fn);
 
                         if (fn !== undefined)
                             fn.params.forEach(function (param) {
@@ -216,7 +245,12 @@ function getObjectByCode(code, pathFile) {
     return result;
 }
 
+module.exports.getObjectByCode = getObjectByCode;
 module.exports.getObjectFromJSFiles = getObjectFromJSFiles;
-//let json = JSON.stringify(getObjectFromJSFiles("", ""), null, ' ');
+module.exports.getObjectFromFilesByPath = getObjectFromFilesByPath;
+module.exports.getObjectFromFileByPath = getObjectFromFileByPath;
+module.exports.getObjectByCode = getObjectByCode;
+
+//let json = JSON.stringify(getObjectFromFileByPath(__dirname + '/index.js'), null, ' ');
 //let json = JSON.stringify(getObjectFromJSFiles("all", ''), null, ' ');
 //console.log(json);

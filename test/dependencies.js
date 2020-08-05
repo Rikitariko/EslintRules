@@ -9,7 +9,7 @@ describe('Detection of dependencies', function () {
             "object": "module",
             "name": "a",
             "dependencies": ["angular-route", "a/b/c", "@some/a/b/c", "a/b/csdsdf", "./app/some", "../asd"],
-            "body": [{"object": "controller", "name": "GreetingController", "variables": []}]
+            "body": [{"object": "controller", "name": "GreetingController", "variables": [], "controllers":[]}]
         }];
         assert.equal(JSON.stringify(modules.getObjectFromJSFiles("one", code)), JSON.stringify(answer));
     });
@@ -21,7 +21,7 @@ describe('Detection of dependencies', function () {
             "object": "module",
             "name": "a",
             "dependencies": ["sdfsdf", "rtytu", "klk"],
-            "body": [{"object": "controller", "name": "GreetingController", "variables": []}]
+            "body": [{"object": "controller", "name": "GreetingController", "variables": [], "controllers":[]}]
         }];
         assert.equal(JSON.stringify(modules.getObjectFromJSFiles("one", code)), JSON.stringify(answer));
     });
