@@ -10,7 +10,7 @@ describe('Different types of controller definition', function () {
             "name": "a",
             "dependencies": [],
             "body": [{"object": "component", "name": "serviceId", "variables": ["a", "v", "b"], "controllers":[]}]}];
-        assert.equal(JSON.stringify(modules.getObjectFromJSFiles("one", code)), JSON.stringify(answer));
+        assert.equal(JSON.stringify(modules.getObjectByCode(code, "")), JSON.stringify(answer));
     });
 
     it('Arrow Function', function () {
@@ -21,7 +21,7 @@ describe('Different types of controller definition', function () {
             "name": "a",
             "dependencies": [],
             "body": [{"object": "component", "name": "serviceId", "variables": ["a", "v", "b"], "controllers":[]}]}];
-        assert.equal(JSON.stringify(modules.getObjectFromJSFiles("one", code)), JSON.stringify(answer));
+        assert.equal(JSON.stringify(modules.getObjectByCode(code, "")), JSON.stringify(answer));
     });
 
     it('Arrow Function', function () {
@@ -32,7 +32,7 @@ describe('Different types of controller definition', function () {
             "name": "a",
             "dependencies": [],
             "body": [{"object": "component", "name": "serviceId", "variables": ["a", "v", "b"], "controllers":[]}]}];
-        assert.equal(JSON.stringify(modules.getObjectFromJSFiles("one", code)), JSON.stringify(answer));
+        assert.equal(JSON.stringify(modules.getObjectByCode(code, "")), JSON.stringify(answer));
     });
 });
 
@@ -46,7 +46,7 @@ describe('Different types of function', function () {
             "dependencies": [],
             "body": [{"object": "factory", "name": "serviceId", "variables": ["a", "v", "b"], "controllers":[]}]
         }];
-        assert.equal(JSON.stringify(modules.getObjectFromJSFiles("one", code)), JSON.stringify(answer));
+        assert.equal(JSON.stringify(modules.getObjectByCode(code, "")), JSON.stringify(answer));
     });
 
     it('Arrow function 1', function () {
@@ -58,7 +58,7 @@ describe('Different types of function', function () {
             "dependencies": [],
             "body": [{"object": "factory", "name": "serviceId", "variables": ["a", "v", "b"], "controllers":[]}]
         }];
-        assert.equal(JSON.stringify(modules.getObjectFromJSFiles("one", code)), JSON.stringify(answer));
+        assert.equal(JSON.stringify(modules.getObjectByCode(code, "")), JSON.stringify(answer));
     });
 
     it('Arrow function 2', function () {
@@ -70,6 +70,6 @@ describe('Different types of function', function () {
             "dependencies": [],
             "body": [{"object": "factory", "name": "serviceId", "variables": ["a", "v", "b"], "controllers":[]}]
         }];
-        assert.equal(JSON.stringify(modules.getObjectFromJSFiles("one", code)), JSON.stringify(answer));
+        assert.equal(JSON.stringify(modules.getObjectByCode(code, "")), JSON.stringify(answer));
     });
 });

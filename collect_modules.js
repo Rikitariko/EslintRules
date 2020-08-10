@@ -1,21 +1,21 @@
-"use strict"
+'use strict';
 const fs = require('fs');
 const recast = require('recast');
 
 function findComment(node) {
     let result = [];
     recast.visit(node, {
-        visitComment: function (path) {
+        visitComment: function(path) {
             this.traverse(path);
-            if (path.value.value.replace(/^\s*/,'').replace(/\s*$/,'') === "@ngInject") {
+            if (path.value.value.replace(/^\s*/,'').replace(/\s*$/,'') === '@ngInject') {
                 switch (path.parentPath.parentPath.value.type) {
-                    case "VariableDeclaration":
+                    case 'VariableDeclaration':
                         result.push(path.parentPath.parentPath.value.declarations[0].init);
                         break;
-                    case "FunctionDeclaration":
+                    case 'FunctionDeclaration':
                         result.push(path.parentPath.parentPath.value);
                         break;
-                    case "Property":
+                    case 'Property':
                         result.push(path.parentPath.parentPath.value.value);
                         break;
                 }
@@ -27,13 +27,13 @@ function findComment(node) {
 
 function findController(node) {
     if (!node)
-        return [];
+    {return [];}
 
     let result = [];
     recast.visit(node, {
-        visitProperty: function (path) {
+        visitProperty: function(path) {
             this.traverse(path);
-            if (path.node.key.type === "Identifier" && path.node.key.name === "controller" && path.node.value.type === "Literal") {
+            if (path.node.key.type === 'Identifier' && path.node.key.name === 'controller' && path.node.value.type === 'Literal') {
                 result.push(path.node.value.value);
             }
         }
@@ -46,25 +46,25 @@ function findReqIdentifier(node) {
     let result = [];
 
     node.elements.forEach(function(item) {
-        if (item.type === "Literal")
-            result.push(item.value);
+        if (item.type === 'Literal')
+        {result.push(item.value);}
     });
 
     recast.visit(node, {
-        visitIdentifier: function (path) {
+        visitIdentifier: function(path) {
             this.traverse(path);
-            if (path.value.name === "require") {
+            if (path.value.name === 'require') {
                 result.push(path.parentPath.value.arguments[0].value);
             }
         }
-    })
+    });
     return result;
 }
 
 function findFunctionByNode(path, callExpressionNode) {
     let node = (callExpressionNode.callee.type === 'Identifier' || (callExpressionNode.callee.property.name === 'run' || callExpressionNode.callee.property.name === 'config')) ? callExpressionNode.arguments[0] : callExpressionNode.arguments[1];
-    if (callExpressionNode.arguments.length === 1 && callExpressionNode.arguments[0].type !== "Literal")
-        node = callExpressionNode.arguments[0];
+    if (callExpressionNode.arguments.length === 1 && callExpressionNode.arguments[0].type !== 'Literal')
+    {node = callExpressionNode.arguments[0];}
 
     if (!node) {
         return;
@@ -73,24 +73,24 @@ function findFunctionByNode(path, callExpressionNode) {
     switch (node.type) {
         case 'ArrayExpression':
             node = node.elements[node.elements.length - 1] || {};
-            break
+            break;
         case 'FunctionExpression':
         case 'ArrowFunctionExpression':
         case 'FunctionDeclaration':
             return node;
         case 'ObjectExpression':
-            node.properties.forEach(function (property) {
+            node.properties.forEach(function(property) {
                 if (property.key.name === 'controller') {
-                    if (property.value.type === 'FunctionExpression' || property.value.type === "ArrowFunctionExpression")
-                        func = property.value;
-                    if (property.value.type === "ArrayExpression")
-                        func = property.value.elements[property.value.elements.length - 1];
+                    if (property.value.type === 'FunctionExpression' || property.value.type === 'ArrowFunctionExpression')
+                    {func = property.value;}
+                    if (property.value.type === 'ArrayExpression')
+                    {func = property.value.elements[property.value.elements.length - 1];}
                 }
             });
             return func;
         case 'Identifier':
             let scope = path.scope.lookup(node.name).getBindings();
-            scope[node.name].some(function (variable) {
+            scope[node.name].some(function(variable) {
                 if (variable.parentPath.value.type === 'FunctionDeclaration') {
                     func = variable.parentPath.value;
                     return true;
@@ -118,27 +118,19 @@ let angularChainableNames = [
 
 function getObjectFromFilesByPath(path) {
     let result = [];
-    let files = require('./read_files.js').getFiles("js", path);
+    let files = require('./read_files.js').getFiles('js', path);
     files.forEach(function(file) {
-        result = result.concat(getObjectByCode(fs.readFileSync(file).toString(), file))
+        result = result.concat(getObjectByCode(fs.readFileSync(file).toString(), file));
     });
     return result;
 }
 
 function getObjectFromFileByPath(path) {
-    return getObjectByCode(fs.readFileSync(path).toString(), "");
+    return getObjectByCode(fs.readFileSync(path).toString(), '');
 }
 
-function getObjectFromJSFiles(form, code) {
-    if (form !== "all")
-        return getObjectByCode(code, "");
-
-    let result = [];
-    let files = require('./read_files.js').getFiles("js", __dirname + '/test_project');
-    files.forEach(function(file) {
-        result = result.concat(getObjectByCode(fs.readFileSync(file).toString(), file))
-    });
-    return result;
+function convertCamelcaseToSnakeCase(str) {
+    return str.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
 }
 
 function getObjectByCode(code, pathFile) {
@@ -152,7 +144,7 @@ function getObjectByCode(code, pathFile) {
     let angularChainables = [];
 
     recast.visit(ast, {
-        visitCallExpression: function (path) {
+        visitCallExpression: function(path) {
             this.traverse(path);
 
             let flag = false;
@@ -165,23 +157,26 @@ function getObjectByCode(code, pathFile) {
 
                     let arrayReq = [];
                     if (path.node.arguments.length > 1)
-                        arrayReq = findReqIdentifier(path.node.arguments[1]);
+                    {arrayReq = findReqIdentifier(path.node.arguments[1]);}
 
                     result.push({
                         path: pathFile,
                         object: callee.property.name,
                         name: path.node.arguments[0].value,
                         dependencies: arrayReq,
-                        body: [],
-                    })
+                        body: []
+                    });
 
                     pointBody = result[result.length - 1].body;
                     angularModuleCalls.push(path.node);
                 } else if (angularChainableNames.indexOf(callee.property.name !== -1) && (angularModuleCalls.indexOf(callee.object) !== -1 || angularChainables.indexOf(callee.object) !== -1)) {
                     angularChainables.push(path.node);
+                    let objectName = path.value.arguments[0].value;
+                    if (callee.property.name === 'directive' || callee.property.name === 'component')
+                    {objectName = convertCamelcaseToSnakeCase(path.value.arguments[0].value);}
                     pointBody.push({
                         object: callee.property.name,
-                        name: path.value.arguments[0].value,
+                        name: objectName
                     });
 
                     let fn = findFunctionByNode(path, path.node);
@@ -189,13 +184,13 @@ function getObjectByCode(code, pathFile) {
                     pointBody[pointBody.length - 1].controllers = findController(fn);
 
                     if (fn !== undefined)
-                        fn.params.forEach(function (param) {
-                            pointBody[pointBody.length - 1].variables.push(param.name);
-                        });
+                    {fn.params.forEach(function(param) {
+                        pointBody[pointBody.length - 1].variables.push(param.name);
+                    });}
 
                     let commentArray = findComment(fn);
-                    commentArray.forEach(function (comment) {
-                        comment.params.forEach(function (param) {
+                    commentArray.forEach(function(comment) {
+                        comment.params.forEach(function(param) {
                             pointBody[pointBody.length - 1].variables.push(param.name);
                         });
                     });
@@ -205,28 +200,31 @@ function getObjectByCode(code, pathFile) {
                     let scope = path.scope.lookup(callee.object.name).getBindings();
                     let isAngularModule = (scope[callee.object.name].length !== 0);
 
-                    isAngularModule = isAngularModule && scope[callee.object.name].some(function (id) {
+                    isAngularModule = isAngularModule && scope[callee.object.name].some(function(id) {
                         return angularModuleIdentifiers.indexOf(id.value) !== -1;
                     });
 
                     if (isAngularModule) {
                         angularChainables.push(path.node);
+                        let objectName = path.value.arguments[0].value;
+                        if (callee.property.name === 'directive' || callee.property.name === 'component')
+                        {objectName = convertCamelcaseToSnakeCase(path.value.arguments[0].value);}
                         pointBody.push({
                             object: callee.property.name,
-                            name: path.value.arguments[0].value,
+                            name: objectName
                         });
                         let fn = findFunctionByNode(path, path.node);
                         pointBody[pointBody.length - 1].variables = [];
                         pointBody[pointBody.length - 1].controllers = findController(fn);
 
                         if (fn !== undefined)
-                            fn.params.forEach(function (param) {
-                                pointBody[pointBody.length - 1].variables.push(param.name);
-                            });
+                        {fn.params.forEach(function(param) {
+                            pointBody[pointBody.length - 1].variables.push(param.name);
+                        });}
 
                         let commentArray = findComment(fn);
-                        commentArray.forEach(function (comment) {
-                            comment.params.forEach(function (param) {
+                        commentArray.forEach(function(comment) {
+                            comment.params.forEach(function(param) {
                                 pointBody[pointBody.length - 1].variables.push(param.name);
                             });
                         });
@@ -240,7 +238,7 @@ function getObjectByCode(code, pathFile) {
                     angularModuleIdentifiers.push(path.parentPath.value.id);
                 }
             }
-        },
+        }
     });
     return result;
 }

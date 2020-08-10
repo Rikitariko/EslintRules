@@ -11,7 +11,7 @@ describe('Detection of modules', function () {
             "dependencies": [],
             "body": [{"object": "controller", "name": "GreetingController", "variables": [], "controllers":[]}],
         }];
-        assert.equal(JSON.stringify(modules.getObjectFromJSFiles("one", code)), JSON.stringify(answer));
+        assert.equal(JSON.stringify(modules.getObjectByCode(code, "")), JSON.stringify(answer));
     });
 
 
@@ -24,7 +24,7 @@ describe('Detection of modules', function () {
             "dependencies": [],
             "body": [{"object": "factory", "name": "serviceId", "variables": [], "controllers":[]}],
         }];
-        assert.equal(JSON.stringify(modules.getObjectFromJSFiles("one", code)), JSON.stringify(answer));
+        assert.equal(JSON.stringify(modules.getObjectByCode(code, "")), JSON.stringify(answer));
     });
 
 
@@ -38,7 +38,7 @@ describe('Detection of modules', function () {
             "dependencies": [],
             "body": [{"object": "filter", "name": "reverse", "variables": [], "controllers":[]}]
         }];
-        assert.equal(JSON.stringify(modules.getObjectFromJSFiles("one", code)), JSON.stringify(answer));
+        assert.equal(JSON.stringify(modules.getObjectByCode(code, "")), JSON.stringify(answer));
     });
 
 
@@ -52,7 +52,7 @@ describe('Detection of modules', function () {
             "dependencies": [],
             "body": [{"object": "directive", "name": "myCustomer", "variables": [], "controllers":[]}]
         }];
-        assert.equal(JSON.stringify(modules.getObjectFromJSFiles("one", code)), JSON.stringify(answer));
+        assert.equal(JSON.stringify(modules.getObjectByCode(code, "")), JSON.stringify(answer));
     });
 
 
@@ -65,6 +65,6 @@ describe('Detection of modules', function () {
             "dependencies": [],
             "body": [{"object": "component", "name": "heroDetail", "variables": [], "controllers":[]}]
         }];
-            assert.equal(JSON.stringify(modules.getObjectFromJSFiles("one", code)), JSON.stringify(answer));
+            assert.equal(JSON.stringify(modules.getObjectByCode(code, "")), JSON.stringify(answer));
     });
 });
