@@ -9,7 +9,7 @@ describe('Different types of controller definition', function () {
             "object": "module",
             "name": "a",
             "dependencies": [],
-            "body": [{"object": "component", "name": "serviceId", "variables": ["a", "v", "b"], "controllers":[]}]}];
+            "body": [{"object": "component", "name": "service-id", "variables": ["a", "v", "b"], "controllers":[]}]}];
         assert.equal(JSON.stringify(modules.getObjectByCode(code, "")), JSON.stringify(answer));
     });
 
@@ -20,7 +20,7 @@ describe('Different types of controller definition', function () {
             "object": "module",
             "name": "a",
             "dependencies": [],
-            "body": [{"object": "component", "name": "serviceId", "variables": ["a", "v", "b"], "controllers":[]}]}];
+            "body": [{"object": "component", "name": "service-id", "variables": ["a", "v", "b"], "controllers":[]}]}];
         assert.equal(JSON.stringify(modules.getObjectByCode(code, "")), JSON.stringify(answer));
     });
 
@@ -31,7 +31,7 @@ describe('Different types of controller definition', function () {
             "object": "module",
             "name": "a",
             "dependencies": [],
-            "body": [{"object": "component", "name": "serviceId", "variables": ["a", "v", "b"], "controllers":[]}]}];
+            "body": [{"object": "component", "name": "service-id", "variables": ["a", "v", "b"], "controllers":[]}]}];
         assert.equal(JSON.stringify(modules.getObjectByCode(code, "")), JSON.stringify(answer));
     });
 });

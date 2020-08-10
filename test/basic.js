@@ -50,7 +50,7 @@ describe('Detection of modules', function () {
             "object": "module",
             "name": "d",
             "dependencies": [],
-            "body": [{"object": "directive", "name": "myCustomer", "variables": [], "controllers":[]}]
+            "body": [{"object": "directive", "name": "my-customer", "variables": [], "controllers":[]}]
         }];
         assert.equal(JSON.stringify(modules.getObjectByCode(code, "")), JSON.stringify(answer));
     });
@@ -63,7 +63,7 @@ describe('Detection of modules', function () {
             "object": "module",
             "name": "e",
             "dependencies": [],
-            "body": [{"object": "component", "name": "heroDetail", "variables": [], "controllers":[]}]
+            "body": [{"object": "component", "name": "hero-detail", "variables": [], "controllers":[]}]
         }];
             assert.equal(JSON.stringify(modules.getObjectByCode(code, "")), JSON.stringify(answer));
     });

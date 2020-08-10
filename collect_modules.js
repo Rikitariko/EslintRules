@@ -244,7 +244,6 @@ function getObjectByCode(code, pathFile) {
 }
 
 module.exports.getObjectByCode = getObjectByCode;
-module.exports.getObjectFromJSFiles = getObjectFromJSFiles;
 module.exports.getObjectFromFilesByPath = getObjectFromFilesByPath;
 module.exports.getObjectFromFileByPath = getObjectFromFileByPath;
 module.exports.getObjectByCode = getObjectByCode;
