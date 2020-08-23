@@ -11,7 +11,7 @@ describe('Detection of dependencies', function () {
             "dependencies": ["angular-route", "a/b/c", "@some/a/b/c", "a/b/csdsdf", "./app/some", "../asd"],
             "body": [{"object": "controller", "name": "GreetingController", "variables": [], "controllers":[]}]
         }];
-        assert.equal(JSON.stringify(modules.getObjectByCode(code, "")), JSON.stringify(answer));
+        assert.equal(JSON.stringify(modules.getObjectByCode(code, "", false, "es").result), JSON.stringify(answer));
     });
 
     it('test with array expression', function () {
@@ -23,6 +23,6 @@ describe('Detection of dependencies', function () {
             "dependencies": ["sdfsdf", "rtytu", "klk"],
             "body": [{"object": "controller", "name": "GreetingController", "variables": [], "controllers":[]}]
         }];
-        assert.equal(JSON.stringify(modules.getObjectByCode(code, "")), JSON.stringify(answer));
+        assert.equal(JSON.stringify(modules.getObjectByCode(code, "", false, "es").result), JSON.stringify(answer));
     });
 });

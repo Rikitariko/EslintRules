@@ -1,6 +1,7 @@
 'use strict';
 const fs = require('fs');
 const recast = require('recast');
+const moduleParser = require('./node_modules_parser/node_modules_parser');
 
 function findComment(node) {
     let result = [];
@@ -80,7 +81,7 @@ function findFunctionByNode(path, callExpressionNode) {
             return node;
         case 'ObjectExpression':
             node.properties.forEach(function(property) {
-                if (property.key.name === 'controller') {
+                if ((property.type === 'ObjectProperty' || property.type === 'Property') && property.key.name === 'controller') {
                     if (property.value.type === 'FunctionExpression' || property.value.type === 'ArrowFunctionExpression')
                     {func = property.value;}
                     if (property.value.type === 'ArrayExpression')
@@ -115,33 +116,127 @@ let angularChainableNames = [
     'service',
     'value'
 ];
+function findServicesInAdditionalDirectives(path) {
+    let ignore = ['karma', 'sass'];
+    let result = [];
+    let dirs = fs.readdirSync(path);
+    let modules = [];
+    dirs.forEach(function(dir) {
+        if (dir[0] === '@' || dir === 'ring-hub') {
+            let files = require('./read_files.js').getFiles('.js', path + '/' + dir);
+            modules = modules.concat(getDeclarationsByPath(files));
+        } else {
+            let files = fs.readdirSync(path + '/' + dir);
+            files.forEach(function(file) {
+                let name = path + '/' + dir + '/' + file;
+                if (!fs.statSync(name).isDirectory() && file.slice(file.length - 3) === '.js' && ignore.indexOf(dir) === -1) {
+                    modules = modules.concat(getDeclarationsByPath([name]));
+                }
+            });
+        }
+    });
+
+    dirs.forEach(function(dir) {
+        if (dir[0] === '@') {
+            let files = require('./read_files.js').getFiles('.js', path + '/' + dir);
+            result = result.concat(getUsageByPath(files, modules));
+        } else {
+            let files = fs.readdirSync(path + '/' + dir);
+            files.forEach(function(file) {
+
+                let name = path + '/' + dir + '/' + file;
+                if (!fs.statSync(name).isDirectory() && file.slice(file.length - 3) === '.js' && ignore.indexOf(dir) === -1) {
+                    result = result.concat(getUsageByPath([name], modules));
+                }
+            });
+        }
+    });
+
+    return result;
+}
+
+function getObjectForAdditionalModules(path) {
+    let ignore = ['karma', 'sass'];
+    let result = [];
+    let dirs = fs.readdirSync(path);
+    dirs.forEach(function(dir) {
+        if (dir[0] === '@' || dir === 'ring-hub') {
+            let files = require('./read_files.js').getFiles('.js', path + '/' + dir);
+            files.forEach(function(file) {
+                result = result.concat(getObjectByCode(fs.readFileSync(file).toString(), file, false, 'babel').result);
+            });
+        } else {
+            let files = fs.readdirSync(path + '/' + dir);
+            files.forEach(function(file) {
+                let name = path + '/' + dir + '/' + file;
+                if (!fs.statSync(name).isDirectory() && file.slice(file.length - 3) === '.js' && ignore.indexOf(dir) === -1) {
+                    result = result.concat(getObjectByCode(fs.readFileSync(name).toString(), name, false, 'babel').result);
+                }
+            });
+        }
+    });
+
+    return result;
+}
+
+function getDeclarationsByPath(files) {
+    let modulesInsideDeclaration = [];
+    files.forEach(function(file) {
+        modulesInsideDeclaration = modulesInsideDeclaration.concat(getObjectByCode(fs.readFileSync(file).toString(), file, true, 'babel').modulesInsideDeclaration);
+    });
+    return modulesInsideDeclaration;
+}
+
+function getUsageByPath(files, modulesInsideDeclaration) {
+    let result = [];
+    files.forEach(function(file) {
+        result = result.concat(moduleParser.findUsage(fs.readFileSync(file).toString(), modulesInsideDeclaration, file));
+    });
+
+    return result;
+}
 
 function getObjectFromFilesByPath(path) {
     let result = [];
     let files = require('./read_files.js').getFiles('js', path);
     files.forEach(function(file) {
-        result = result.concat(getObjectByCode(fs.readFileSync(file).toString(), file));
+        result = result.concat(getObjectByCode(fs.readFileSync(file).toString(), file, false, 'es').result);
     });
     return result;
 }
 
 function getObjectFromFileByPath(path) {
-    return getObjectByCode(fs.readFileSync(path).toString(), '');
+    return getObjectByCode(fs.readFileSync(path).toString(), '', false, 'es').result;
+}
+
+function getObjectFromJSFiles(form, code) {
+    if (form !== 'all')
+    {return getObjectByCode(code, '', false, 'es').result;}
+
+    let result = [];
+    let files = require('./read_files.js').getFiles('js', __dirname + '/test_project');
+    files.forEach(function(file) {
+        result = result.concat(getObjectByCode(fs.readFileSync(file).toString(), file, false, 'es').result);
+    });
+    return result;
 }
 
 function convertCamelcaseToSnakeCase(str) {
     return str.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
 }
 
-function getObjectByCode(code, pathFile) {
+function getObjectByCode(code, pathFile, form, parserSetting) {
     let result = [];
     let pointBody;
-
-
-    let ast = recast.parse(code);
+    let ast;
+    if (parserSetting === 'babel')
+        ast = recast.parse(code, {parser: require('recast/parsers/babel')});
+    else
+        ast = recast.parse(code);
     let angularModuleIdentifiers = [];
     let angularModuleCalls = [];
     let angularChainables = [];
+    let modulesInsideDeclaration = [];
 
     recast.visit(ast, {
         visitCallExpression: function(path) {
@@ -173,7 +268,13 @@ function getObjectByCode(code, pathFile) {
                     angularChainables.push(path.node);
                     let objectName = path.value.arguments[0].value;
                     if (callee.property.name === 'directive' || callee.property.name === 'component')
-                    {objectName = convertCamelcaseToSnakeCase(path.value.arguments[0].value);}
+                    {
+                        if (path.value.arguments[0].value === undefined)
+                        {modulesInsideDeclaration = (form === true) ? modulesInsideDeclaration.concat(moduleParser.findDeclaration(ast, path, callee.property.name)) : [];}
+                        else
+                        {objectName = convertCamelcaseToSnakeCase(path.value.arguments[0].value);}
+
+                    }
                     pointBody.push({
                         object: callee.property.name,
                         name: objectName
@@ -183,7 +284,7 @@ function getObjectByCode(code, pathFile) {
                     pointBody[pointBody.length - 1].variables = [];
                     pointBody[pointBody.length - 1].controllers = findController(fn);
 
-                    if (fn !== undefined)
+                    if (fn !== undefined && callee.property.name !== 'constant')
                     {fn.params.forEach(function(param) {
                         pointBody[pointBody.length - 1].variables.push(param.name);
                     });}
@@ -194,8 +295,6 @@ function getObjectByCode(code, pathFile) {
                             pointBody[pointBody.length - 1].variables.push(param.name);
                         });
                     });
-
-
                 } else if (callee.object.type === 'Identifier' && path.scope.lookup(callee.object.name) !== null) {
                     let scope = path.scope.lookup(callee.object.name).getBindings();
                     let isAngularModule = (scope[callee.object.name].length !== 0);
@@ -207,8 +306,12 @@ function getObjectByCode(code, pathFile) {
                     if (isAngularModule) {
                         angularChainables.push(path.node);
                         let objectName = path.value.arguments[0].value;
-                        if (callee.property.name === 'directive' || callee.property.name === 'component')
-                        {objectName = convertCamelcaseToSnakeCase(path.value.arguments[0].value);}
+                        if (callee.property.name === 'directive' || callee.property.name === 'component') {
+                            if (path.value.arguments[0].value === undefined)
+                            {modulesInsideDeclaration = (form === true) ? modulesInsideDeclaration.concat(moduleParser.findDeclaration(ast, path, callee.property.name)) : [];}
+                            else
+                            {objectName = convertCamelcaseToSnakeCase(path.value.arguments[0].value);}
+                        }
                         pointBody.push({
                             object: callee.property.name,
                             name: objectName
@@ -217,7 +320,7 @@ function getObjectByCode(code, pathFile) {
                         pointBody[pointBody.length - 1].variables = [];
                         pointBody[pointBody.length - 1].controllers = findController(fn);
 
-                        if (fn !== undefined)
+                        if (fn !== undefined && callee.property.name !== 'constant')
                         {fn.params.forEach(function(param) {
                             pointBody[pointBody.length - 1].variables.push(param.name);
                         });}
@@ -240,14 +343,20 @@ function getObjectByCode(code, pathFile) {
             }
         }
     });
-    return result;
+    return {result, modulesInsideDeclaration, ast};
 }
 
-module.exports.getObjectByCode = getObjectByCode;
+module.exports.getObjectFromJSFiles = getObjectFromJSFiles;
 module.exports.getObjectFromFilesByPath = getObjectFromFilesByPath;
 module.exports.getObjectFromFileByPath = getObjectFromFileByPath;
 module.exports.getObjectByCode = getObjectByCode;
+module.exports.getObjectForAdditionalModules = getObjectForAdditionalModules;
+module.exports.findServicesInAdditionalDirectives = findServicesInAdditionalDirectives;
+//let json = JSON.stringify(getObjectForAdditionalModules(__dirname + '/../node_modules'), null, ' ');
+//fs.writeFileSync("resultObject.txt", json,  "ascii")
+//json = JSON.stringify(findServicesInAdditionalDirectives(__dirname + '/../node_modules'), null, ' ');
+//fs.writeFileSync("resultDeclaration.txt", json,  "ascii")
 
-//let json = JSON.stringify(getObjectFromFileByPath(__dirname + '/index.js'), null, ' ');
-//let json = JSON.stringify(getObjectFromJSFiles("all", ''), null, ' ');
-//console.log(json);
+//let json = JSON.stringify(getDeclarationsFromFilesByPath(__dirname), null, ' ');
+//let json = JSON.stringify(getDeclarationsFromFilesByPath(__dirname + "/test_project"), null, ' ');
+

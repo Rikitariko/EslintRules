@@ -166,5 +166,5 @@ module.exports.getTokensFromJSFilesByPath = getTokensFromJSFilesByPath;
 //let htmlRes = getTokensFromHtmlByPath(require('./../read_files.js').getFiles("html", "/home/asus/WebstormProjects/EslintRules"));
 //let jsRes = getTokensFromJSFilesByPath(require('./../read_files.js').getFiles("js", "/home/asus/WebstormProjects/EslintRules"));
 
-console.log(htmlRes);
-console.log(jsRes);
+//console.log(htmlRes);
+//console.log(jsRes);
