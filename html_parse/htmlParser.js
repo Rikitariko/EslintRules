@@ -119,11 +119,6 @@ function findFilter(node) {
     return res;
 }
 
-function getTokensFromHtmlByCode(code) {
-    let ast = HTML.parse(code);
-    return findFilter(ast[0]).concat(findDirective(ast[0]));
-}
-
 function findTemplates(code) {
     let ast = recast.parse(code);
     let result = [];
@@ -137,6 +132,15 @@ function findTemplates(code) {
         }
     });
     return result;
+}
+
+function getTokensFromHtmlByCode(code) {
+    let ast = HTML.parse(code);
+    return findFilter(ast[0]).concat(findDirective(ast[0]));
+}
+
+function getTokensFromJSByCode(code) {
+    return findTemplates(code);
 }
 
 function getTokensFromJSFilesByPath(files) {
@@ -163,8 +167,11 @@ function getTokensFromHtmlByPath(files) {
 
 module.exports.getTokensFromHtmlByPath = getTokensFromHtmlByPath;
 module.exports.getTokensFromJSFilesByPath = getTokensFromJSFilesByPath;
+module.exports.getTokensFromJSByCode = getTokensFromJSByCode;
+module.exports.getTokensFromHtmlByCode = getTokensFromHtmlByCode;
 //let htmlRes = getTokensFromHtmlByPath(require('./../read_files.js').getFiles("html", "/home/asus/WebstormProjects/EslintRules"));
 //let jsRes = getTokensFromJSFilesByPath(require('./../read_files.js').getFiles("js", "/home/asus/WebstormProjects/EslintRules"));
+let jsRes = getTokensFromJSByCode();
 
 //console.log(htmlRes);
-//console.log(jsRes);
+console.log(jsRes);
