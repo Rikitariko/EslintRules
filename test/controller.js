@@ -72,4 +72,5 @@ describe('Different types of function', function () {
         }];
         assert.equal(JSON.stringify(modules.getObjectByCode(code, "", false, "es").result), JSON.stringify(answer));
     });
+
 });
