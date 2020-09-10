@@ -1,6 +1,9 @@
 let recast = require('recast');
 let fs = require('fs');
 let getDependenciesStatus = require('./findDep').getDependenciesStatus;
+let createGraph = require('./find_cycle/findCycle').createGraph;
+let findCycle = require('./find_cycle/findCycle').findCycle;
+const getObjectFromFilesByPath = require('./collect_modules').getObjectFromFilesByPath;
 
 let depStatus = new Map();
 
@@ -16,6 +19,8 @@ getDependenciesStatus().forEach(function(module) {
     dep.removeDep.add(item);
   });
 });
+
+let resGraph = createGraph('/../test_project/components');
 
 let files = fs.readdirSync(__dirname + '/test_project/components');
 for (let i in files) {
@@ -36,10 +41,14 @@ for (let i in files) {
 
               let dep = depStatus.get(path.node.arguments[0].value);
               if (depStatus.get(path.node.arguments[0].value) !== undefined) {
-                dep.addDep.forEach(function(name) {
+                dep.addDep.forEach(function(item) {
+
+                  if (item.path.includes('/issue/'))
+                    console.log('готовность');
+
                   let id = 0;
-                  for (let i = 0; i < Math.min(objFile.length, name.length); i++){
-                    if (objFile[i] === name[i])
+                  for (let i = 0; i < Math.min(objFile.length, item.path.length); i++){
+                    if (objFile[i] === item.path[i])
                     {id = i;}
                     else {
                       id = objFile.lastIndexOf('/', id);
@@ -47,25 +56,40 @@ for (let i in files) {
                     }
                   }
                   let code = '';
-                  if (name.includes('/node_modules/')) {
-                    let mainPath = name.slice(name.indexOf('/node_modules/') + '/node_modules/'.length);
-                    if (name.includes('/ring-ui/')) {
+                  if (item.path.includes('/node_modules/')) {
+                    let mainPath = item.path.slice(item.path.indexOf('/node_modules/') + '/node_modules/'.length);
+                    if (item.path.includes('/ring-ui/')) {
                       mainPath = mainPath.split(/\//);
                       mainPath = mainPath.slice(0, mainPath.length - 1).join('/');
                       code = recast.parse(`require('${mainPath}').default`);
                     }
                     else
                     {code = recast.parse(`'${mainPath}'`);}
+
                   }
                   else {
                     let pathLeft = objFile.slice(id + 1).split(/\//);
-                    let pathRight = name.slice(id + 1).split(/\//);
-                    let mainPath = ('../').repeat(pathLeft.length - 1) + pathRight.slice(0, pathRight.length - 1).join('/');
+                    let pathRight = item.path.slice(id + 1).split(/\//);
+                    let mainPath = ('../').repeat(pathLeft.length - 1) + pathRight.slice(0, pathLeft.length - 1).join('/');
+
+                    let testPath = objFile.slice(0, id + 1) + pathRight.slice(0, pathRight.length - 1).join('/');
+                    let testObj = getObjectFromFilesByPath(testPath);
+
+                    if (resGraph.idName.has(testObj[testObj.length - 1].name)) {
+                      resGraph.vertex[resGraph.idName.get(testObj[testObj.length - 1].name)].edge.push(resGraph.idName.get(path.node.arguments[0].value));
+                      if (findCycle(resGraph.vertex, resGraph.idName)) {
+                        console.log('You try to create cycle' + item.name + ' in ' + item.path);
+                        resGraph.vertex[resGraph.idName.get(testObj[testObj.length - 1].name)].edge.splice(resGraph.vertex[resGraph.idName.get(testObj[testObj.length - 1].name)].edge.length - 1, 1);
+                        return false;
+                      }
+                    }
 
                     code = recast.parse(`require('${mainPath}').name`);
                   }
-                  node.elements.push(code.program.body[0].expression);
-                  console.log(recast.print(code).code);
+                  if (code !== '') {
+                    node.elements.push(code.program.body[0].expression);
+                    console.log(recast.print(code).code);
+                  }
                 });
               }
               node.elements.forEach(function(item, index) {
