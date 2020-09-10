@@ -25,4 +25,16 @@ describe('Detection of dependencies', function () {
         }];
         assert.equal(JSON.stringify(modules.getObjectByCode(code, "", false, "es").result), JSON.stringify(answer));
     });
+
+    it('test with different types of item', function () {
+        let code = "angular.module('a', [require('../a').name, 'rtytu', 'klk']).controller('GreetingController', function() {});";
+        let answer = [{
+            "path": "",
+            "object": "module",
+            "name": "a",
+            "dependencies": ["rtytu", "klk", "../a"],
+            "body": [{"object": "controller", "name": "GreetingController", "variables": [], "controllers":[]}]
+        }];
+        assert.equal(JSON.stringify(modules.getObjectByCode(code, "", false, "es").result), JSON.stringify(answer));
+    });
 });
