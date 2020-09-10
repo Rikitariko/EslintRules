@@ -1,7 +1,7 @@
 "use strict"
 const fs = require('fs');
 const recast = require('recast');
-const getObjectFromJSFiles = require('./collect_modules').getObjectFromJSFiles;
+const getObjectFromJSFiles = require('./../collect_modules').getObjectFromJSFiles;
 
 function findFilter(code) {
     let result = [];
