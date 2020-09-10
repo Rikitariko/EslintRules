@@ -5,6 +5,8 @@ const getObjectFromFilesByPath = require('./collect_modules').getObjectFromFiles
 const collectModules = require('./collect_modules');
 const getTokensFromHtmlByPath = require('./html_parse/htmlParser.js').getTokensFromHtmlByPath;
 const getTokensFromJSFilesByPath = require('./html_parse/htmlParser.js').getTokensFromJSFilesByPath;
+const findJSFiltersByFiles = require('./html_parse/findFilter').findJSFiltersByFiles;
+
 
 function getDI(modules) {
     let result = [];
@@ -80,9 +82,13 @@ function getDependenciesStatus() {
     for (let i in files) {
         let name = __dirname + '/test_project/components/' + files[i];
         if (fs.statSync(name).isDirectory()) {
+            let obj = getObjectFromFilesByPath(name);
             let htmlRes = getTokensFromHtmlByPath(require('./read_files.js').getFiles('html', name));
             let jsRes = getTokensFromJSFilesByPath(require('./read_files.js').getFiles('js', name));
+            let jsFilters = findJSFiltersByFiles(require('./read_files.js').getFiles('js', name), obj);
+
             let filDirMap = new Map();
+
             htmlRes.forEach(function(item) {
                 filDirMap.set(item.name, false);
             });
@@ -91,7 +97,10 @@ function getDependenciesStatus() {
                 filDirMap.set(item.name, false);
             });
 
-            let obj = getObjectFromFilesByPath(name);
+            jsFilters.forEach(function(item) {
+                filDirMap.set(item.name, false);
+            });
+
             let objServicesMap = new Map();
             let depMap = new Map();
             let diMap = new Map();
@@ -172,7 +181,7 @@ function getDependenciesStatus() {
                 for (let [keyVar, valueVar] of diMap.get(module)) {
                     if (valueVar === false && !objServicesMap.has(keyVar) && mapAllServices.get(keyVar) !== undefined && keyVar[0] !== '$') {
                         //console.log('var  =>  ' + keyVar + ' ' + mapAllServices.get(keyVar));
-                        resultObject[resultObject.length - 1].addDep.push(mapAllServices.get(keyVar));
+                        resultObject[resultObject.length - 1].addDep.push({name:keyVar, path:mapAllServices.get(keyVar)});
                     }
                 }
             }
