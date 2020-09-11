@@ -1,0 +1,1 @@
+angular.module('yB', []).factory('A', function (B) {});

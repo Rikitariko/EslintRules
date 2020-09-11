@@ -6,8 +6,12 @@ let findCycle = require('./find_cycle/findCycle').findCycle;
 const getObjectFromFilesByPath = require('./collect_modules').getObjectFromFilesByPath;
 
 let depStatus = new Map();
+let depResult = getDependenciesStatus();
 
-getDependenciesStatus().forEach(function(module) {
+let resJson = JSON.stringify(depResult, null, ' ');
+fs.writeFileSync("resultOfDependenciesStatus.txt", resJson,  "ascii");
+
+depResult.forEach(function(module) {
   depStatus.set(module.module, {
     removeDep: new Set(),
     addDep: module.addDep
@@ -108,7 +112,7 @@ for (let i in files) {
           }
         }
       });
-      fs.writeFileSync(objFile, recast.print(ast).code,  'ascii');
+      // fs.writeFileSync(objFile, recast.print(ast).code,  'ascii');
     });
   }
 }
