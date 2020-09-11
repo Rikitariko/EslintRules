@@ -1,14 +1,4 @@
-<html>
-    <body>
-        <ul>
-            <li ng-repeat="x in names">
-                {{
-                x | myFormat
-                }}
-            </li>
-            <li ng-repeat="x in names | filter : test">
-                {{ x }}
-            </li>
-        </ul>
-    </body>
-</html>
+<html><body><ul><li ng-repeat="x in names">{{ x | myFormat }}</li><li ng-repeat="x in names | filter : test">{{ x }}</li></ul></body></html>
+
+
+<tr ng-repeat="friendObj in friends | filter:search:strict"></tr>

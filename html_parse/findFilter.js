@@ -1,7 +1,7 @@
 "use strict"
 const fs = require('fs');
 const recast = require('recast');
-const getObjectFromJSFiles = require('./../collect_modules').getObjectFromJSFiles;
+const getObjectFromJSFiles = require('../collect_modules').getObjectFromJSFiles;
 
 function findFilter(code) {
     let result = [];
@@ -21,8 +21,7 @@ function findFilter(code) {
     return result;
 }
 
-function findPostfixFilter(code) {
-    let obj = getObjectFromJSFiles("all", "");
+function findPostfixFilterByObject(obj) {
     let result = [];
 
     obj.forEach(function (module) {
@@ -40,6 +39,18 @@ function findPostfixFilter(code) {
 
     return result;
 }
+
+function findJSFiltersByFiles(files, obj) {
+    let result = findPostfixFilterByObject(obj);
+
+    files.forEach(function(file){
+        result = result.concat(findFilter(fs.readFileSync(file).toString()));
+    });
+
+    return result;
+}
+
+module.exports.findJSFiltersByFiles = findJSFiltersByFiles;
 //console.log(findPostfixFilter());
 //console.log(findFilter(fs.readFileSync("./index.js").toString()));
 //let json = JSON.stringify(getObjectFromJSFiles("all", ''), null, ' ');

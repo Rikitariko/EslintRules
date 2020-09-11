@@ -108,7 +108,7 @@ for (let i in files) {
           }
         }
       });
-      // fs.writeFileSync(objFile, recast.print(ast).code,  'ascii');
+      fs.writeFileSync(objFile, recast.print(ast).code,  'ascii');
     });
   }
 }
